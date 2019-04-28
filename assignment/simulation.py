@@ -1,4 +1,5 @@
 import bisect
+import copy
 from random import random
 from math import pow, e, log
 import numpy as np
@@ -62,7 +63,7 @@ def draw_line(seqs, file):
         color = next(colors)
         label = str(index)
         seq_filtered = list(filter(lambda x: x < 200.0, seq))
-        ax.scatter(x=seq_filtered, y=np.zeros_like(seq_filtered), s=10, c=color, label=label, alpha=1.0)
+        ax.scatter(x=seq_filtered, y=np.zeros_like(seq_filtered), s=10, c=[color], label=label, alpha=1.0)
     ax.legend(loc='upper center', mode='expand', ncol=len(seqs))
     ax.grid(True)
     ax.get_yaxis().set_visible(False)
@@ -84,6 +85,7 @@ def draw_qq_plot(parameters, seqs, file):
     U = parameters['U']
     A = parameters['A']
     samples = []
+    seqs = copy.deepcopy(seqs)
     for seq in seqs:
         seq.insert(0, 0.0)
     M = len(seqs)

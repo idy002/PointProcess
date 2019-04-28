@@ -23,7 +23,9 @@ def evaluation(real_parameters, fitted_parameters):
         X1.append(w1)
         X2.append(w2)
     X1, X2 = np.array(X1), np.array(X2)
-    return np.sum(np.where(X1 == 0, np.abs(X1 - X2), np.abs(X1 - X2) / X1))
+    down = X1.copy()
+    down[np.where(down == 0)] = 1.0
+    return np.mean(np.abs(X1-X2) / down)
 
 
 def main():
@@ -53,7 +55,8 @@ def main():
     draw_qq_plot(parameters, seqs, os.path.join(dirname, "qq_plot.svg"))
 
     # fit
-    fitted_parameters = fit(seqs, T, w)
+    fitted_parameters = fit(seqs, T, w, eps=1e-5)
+    json.dump(fitted_parameters, open(os.path.join(dirname, "fitted_parameters.json"), "wt"), indent=2)
     print("Mean relative error: {:.5f}".format(evaluation(parameters, fitted_parameters)))
 
 
