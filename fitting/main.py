@@ -42,8 +42,8 @@ def main():
 
     # simulate
     U, A, w, T = parameters['U'], parameters['A'], parameters['w'], parameters['T']
-    seqs = simulation(U, A, w, T)
     seqs_list = [simulation(U, A, w, T) for _ in range(10)]
+    seqs = seqs_list[0]
 
     # save result
     dirname = "result"
@@ -56,10 +56,12 @@ def main():
     draw_qq_plot(parameters, seqs, os.path.join(dirname, "qq_plot.svg"))
 
     # fit
-    fit_func = fit_iterate
+    fit_func = fit  # or fit_iterate
     fitted_parameters = fit_func(seqs_list, T, max_step=1000, w=w, eps=1e-5, realParams=parameters)
+    mre = evaluation(parameters, fitted_parameters)
+    fitted_parameters['mean_relative_error'] = mre
     json.dump(fitted_parameters, open(os.path.join(dirname, "fitted_parameters.json"), "wt"), indent=2)
-    print("Mean relative error: {:.5f}".format(evaluation(parameters, fitted_parameters)))
+    print("Mean relative error: {:.5f}".format(mre))
 
 
 main()
