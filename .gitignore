@@ -1,1 +1,3 @@
 /assignment/result
+/**/*.pyc
+/**/.idea
