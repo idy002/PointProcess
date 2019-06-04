@@ -52,12 +52,12 @@ def main():
     json.dump(seqs, open(os.path.join(dirname, "sequences.json"), "wt"), indent=2)
 
     # draw figures
-    draw_line(seqs, os.path.join(dirname, "line.svg"))
-    draw_qq_plot(parameters, seqs, os.path.join(dirname, "qq_plot.svg"))
+    #draw_line(seqs, os.path.join(dirname, "line.svg"))
+    #draw_qq_plot(parameters, seqs, os.path.join(dirname, "qq_plot.svg"))
 
     # fit
     fit_func = fit  # or fit_iterate
-    fitted_parameters = fit_func(seqs_list, T, max_step=1000, w=w, eps=1e-5, realParams=parameters)
+    fitted_parameters = fit_func(seqs_list, T, max_step=30, w=w, eps=1e-5, realParams=parameters)
     mre = evaluation(parameters, fitted_parameters)
     fitted_parameters['mean_relative_error'] = mre
     json.dump(fitted_parameters, open(os.path.join(dirname, "fitted_parameters.json"), "wt"), indent=2)
