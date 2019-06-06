@@ -30,14 +30,14 @@ def simulation(U, A, w, T):
         :param m: dimension
         :return: the intensity
         """
-        return U[m] + sum([A[n][m] * pow(e, -w * (s - hs)) for n in range(M) for hs in sequences[n]])
+        return U[m] + sum([A[m][n] * pow(e, -w * (s - hs)) for n in range(M) for hs in sequences[n]])
 
     s = 0.0
-    while s <= T:
+    while sum([len(seq) for seq in sequences]) < 1000:
         lambda_max = sum([calc_lambda(s, m) for m in range(M)])
         u = 1.0 - random()  # (0, 1]
         s += -log(u) / lambda_max
-        if s > T: break
+#        if s > T: break
         print("{:.5f} {}".format(s, " ".join(["{:3d}".format(len(seq)) for seq in sequences])))
         u = 1.0 - random()
         lambda_list = [calc_lambda(s, m) for m in range(M)]
@@ -104,11 +104,11 @@ def draw_qq_plot(parameters, seqs, file):
         for k in range(1, len(seqs[m])):
             s = U[m] * (seqs[m][k] - seqs[m][k-1])
             for n in range(M):
-                s += (A[n][m] / w) * (1.0 - pow(e, -w * (seqs[m][k] - seqs[m][k-1]))) * R[m][n][k-1]
+                s += (A[m][n] / w) * (1.0 - pow(e, -w * (seqs[m][k] - seqs[m][k-1]))) * R[m][n][k-1]
                 begin = bisect.bisect_left(seqs[n], seqs[m][k-1])
                 end = bisect.bisect_right(seqs[n], seqs[m][k])
                 for i in range(begin, end):
-                    s += (A[n][m] / w) * (1.0 - pow(e, -w * (seqs[m][k] - seqs[n][i])))
+                    s += (A[m][n] / w) * (1.0 - pow(e, -w * (seqs[m][k] - seqs[n][i])))
             samples.append(s)
     scipy.stats.probplot(x=samples, dist=scipy.stats.expon(), fit=False, plot=plt)
     if file is not None:

@@ -1,5 +1,4 @@
 import math
-from math import pow
 import itertools
 import numpy as np
 from numpy.linalg import norm
@@ -109,7 +108,7 @@ def fit_iterate(seqs_list, T, w=None, max_step=1000, eps=1e-5, realParams=None):
     return {'U': U, 'A': A, 'w': w}
 
 
-def fit_single(seqs, T, w=None, max_step=1000, eps=1e-5, realParams=None):
+def fit_single(seqs, T, w=None, max_step=30, eps=1e-5, realParams=None):
     """
     inference the multi-hawkes point process parameters
     :param seqs: the list of event sequences, M = len(seqs) is the dimension of the process
@@ -120,12 +119,14 @@ def fit_single(seqs, T, w=None, max_step=1000, eps=1e-5, realParams=None):
     :return: parameters, {'U': U, 'A', A, 'w': w}, where U is the background intensity
         and A is the infectivity matrix. A[n][m] is the infectivity of n to m
     """
+    T = max([max(seq) for seq in seqs])
+    print(T)
     M = len(seqs)
     w_known = w is not None
-    U = np.random.rand(M)
-    A = np.random.rand(M, M)
+    U = np.random.uniform(0, 0.1, size=M)
+    A = np.random.uniform(0, 0.1, size=(M, M))
     if not w_known:
-        w = np.random.rand()
+        w = np.random.uniform(0, 1, size=1)
 
     e = []
     for index, seq in enumerate(seqs):
@@ -139,28 +140,32 @@ def fit_single(seqs, T, w=None, max_step=1000, eps=1e-5, realParams=None):
         old_A = np.copy(A)
         old_w = np.copy(w)
 
+        # update p
         for i in range(N):
             for j in range(i):
-                p[i, j] = A[e[j][1], e[i][1]] * pow(math.e, -w * (e[i][0] - e[j][0]))
-            p[i, i] = U[e[i][1]]
+                p[i, j] = old_A[e[i][1], e[j][1]] * np.exp(-w * (e[i][0] - e[j][0]))
+            p[i, i] = old_U[e[i][1]]
             p[i] = p[i] / np.sum(p[i])
+
+        # update U
         for d in range(M):
             U[d] = sum([p[i, i] for i in range(N) if e[i][1] == d]) / T
+
+        # update A
         for du in range(M):
             for dv in range(M):
                 up, down = 0.0, 0.0
                 for i in range(N):
-                    if e[i][1] != dv: continue
+                    if e[i][1] != du: continue
                     for j in range(i):
-                        if e[j][1] != du: continue
+                        if e[j][1] != dv: continue
                         up += p[i, j]
                 for j in range(N):
-                    if e[j][1] != du: continue
-                    down += (1.0 - pow(math.e, -old_w * (T - e[j][0]))) / old_w
-                if down == 0.0:
-                    A[dv, du] = 0.0
-                else:
-                    A[dv, du] = up / down
+                    if e[j][1] != dv: continue
+                    down += (1.0 - np.exp(-old_w * (T - e[j][0]))) / old_w
+                A[du, dv] = up / down
+
+        # update w
         if not w_known:
             up, down = 0.0, 0.0
             for i in range(N):
@@ -171,15 +176,9 @@ def fit_single(seqs, T, w=None, max_step=1000, eps=1e-5, realParams=None):
             w = up / down
         else:
             w = old_w
-        U_error = relative_error(old_U, U)
-        A_error = relative_error(old_A, A)
-        w_error = relative_error(old_w, w)
-        dist = relative_error(flatten_concat([old_U, old_A, old_w]), flatten_concat([U, A, w]))
+
         eva = evaluation(realParams, {'U': U, 'A': A, 'w': w})
-        print("\rStep  {} EVA {}  ALL {:.7f}  U {:.7f}  A {:.7f}  w {:.7f}".format(step, eva, dist, U_error, A_error, w_error), end="")
-        if dist < eps:
-            print("Early stop!")
-            return {'U': U.tolist(), 'A': A.tolist(), 'w': w.tolist()}
+        print("\nStep  {} EVA {}".format(step, eva), end="")
     print()
     return {'U': U, 'A': A, 'w': w}
 

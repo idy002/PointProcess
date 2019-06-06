@@ -1,9 +1,10 @@
 import os
 import json
 import argparse
+import random
 import numpy as np
 from simulation import simulation, draw_qq_plot, draw_line
-from fit import fit, fit_iterate
+from fit import fit
 
 
 def evaluation(real_parameters, fitted_parameters):
@@ -32,6 +33,8 @@ def main():
     """
     simulate a multi-dimensional hawkes point process, the parameters are hard encoded
     """
+    np.random.seed(0)
+    random.seed(0)
     # parse argument
     parser = argparse.ArgumentParser("Multi-dimensional hawkes point process simulator")
     parser.add_argument('params', type=str, nargs='?', default='parameters.json', help="the filepath of json parameter file")
@@ -52,12 +55,12 @@ def main():
     json.dump(seqs, open(os.path.join(dirname, "sequences.json"), "wt"), indent=2)
 
     # draw figures
-    #draw_line(seqs, os.path.join(dirname, "line.svg"))
-    #draw_qq_plot(parameters, seqs, os.path.join(dirname, "qq_plot.svg"))
+    draw_line(seqs, os.path.join(dirname, "line.svg"))
+    draw_qq_plot(parameters, seqs, os.path.join(dirname, "qq_plot.svg"))
 
     # fit
     fit_func = fit  # or fit_iterate
-    fitted_parameters = fit_func(seqs_list, T, max_step=30, w=w, eps=1e-5, realParams=parameters)
+    fitted_parameters = fit_func(seqs_list, T, max_step=20, w=None, eps=1e-5, realParams=parameters)
     mre = evaluation(parameters, fitted_parameters)
     fitted_parameters['mean_relative_error'] = mre
     json.dump(fitted_parameters, open(os.path.join(dirname, "fitted_parameters.json"), "wt"), indent=2)
