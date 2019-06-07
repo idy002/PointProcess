@@ -1,0 +1,7 @@
+{
+    "batch_size": 2048,
+    "epochs": 200,
+    "model": "erpp",
+    "gpu": 1,
+    "loss_alpha": 0.05
+}
